@@ -3,4 +3,5 @@ project(hypergraph_min_cut)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(hypergraph_min_cut main.cpp)
+add_executable(hypergraph_min_cut main.cpp
+        hypergraph.h)

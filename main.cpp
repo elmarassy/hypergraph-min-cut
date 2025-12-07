@@ -5,21 +5,7 @@
 #include <random>
 #include <vector>
 #include <unordered_set>
-
-
-struct Hyperedge {
-    double weight{};
-    std::vector<int> vertices;
-};
-
-struct Vertex {
-    std::vector<int> incidentEdges;
-};
-
-struct Hypergraph {
-    std::vector<Vertex> vertices;
-    std::vector<Hyperedge> edges;
-};
+#include "hypergraph.h"
 
 
 double computeWeight(std::vector<Hyperedge> &edges) {
