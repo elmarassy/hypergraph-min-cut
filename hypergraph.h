@@ -13,37 +13,15 @@
 
 
 struct Hyperedge {
-    int weight{};
-    std::unordered_set<int> vertices;
-
-    std::string toString() const {
-        std::ostringstream oss;
-        oss << "Edge of weight " << weight << ", vertices: ";
-        for (int v : vertices)
-            oss << v << " ";
-        oss << "\n";
-        return oss.str();
-    }
-};
-
-struct Vertex {
-    std::unordered_set<int> incidentEdges;
-
-    std::string toString() const {
-        std::ostringstream oss;
-        oss << "Vertex with hyperedges:";
-        for (int e : incidentEdges)
-            oss << e << " ";
-        oss << "\n";
-        return oss.str();
-    }
+    std::vector<uint32_t> vertices;
+    uint32_t weight{};
 };
 
 struct Hypergraph {
-    std::vector<Vertex> vertices;
+    uint32_t n {};
     std::vector<Hyperedge> edges;
 
-    Hypergraph() = default;
+    explicit Hypergraph() = default;
 
     explicit Hypergraph(const std::string& fileName) {
         std::ifstream fin(fileName);
@@ -52,10 +30,9 @@ struct Hypergraph {
         fin >> numHyperedges >> numVertices;
 
         edges = std::vector<Hyperedge>(numHyperedges);
-        vertices = std::vector<Vertex>(numVertices);
+        n = numVertices;
         std::string line;
 
-        // Generate the Randomness
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> distrib(1, 100);
@@ -65,15 +42,11 @@ struct Hypergraph {
         for (int i = 0; i < numHyperedges; i++) {
             std::getline(fin, line);
             std::istringstream iss(line);
-            std::unordered_set<int> edgeVertices;
+            std::vector<uint32_t> edgeVertices;
 
-            // Assigning the Edges in the Graph
             int vertexInd;
             while (iss >> vertexInd){
-                edgeVertices.insert(vertexInd-1);
-
-                // Assigning the Vertices in the Graph
-                vertices[vertexInd-1].incidentEdges.insert(i);
+                edgeVertices.push_back(vertexInd-1);
             }
             int randomWeight = distrib(gen);
             edges[i].weight = randomWeight;
@@ -82,6 +55,6 @@ struct Hypergraph {
     };
 };
 
-
+Hypergraph kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dist, int n, int m, int k, int seed);
 
 #endif //HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
