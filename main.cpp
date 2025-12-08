@@ -46,10 +46,14 @@ void getKSpanning(Hypergraph& H, int k, std::vector<Hyperedge>& S) {
 
     std::vector<Hyperedge> kept;
     kept.reserve(H.edges.size());
-
-    for (auto& edge : H.edges) {
-        if ((int)edge.vertices.size() >= minimum_size) {
+    for (int edgeIndex = 0; edgeIndex < H.edges.size(); edgeIndex++) {
+        auto& edge = H.edges[edgeIndex];
+        if ((int) edge.vertices.size() >= minimum_size) {
             S.push_back(edge);
+            for (auto& vertexIndex: edge.vertices) {
+                auto& vertex = H.vertices[vertexIndex];
+                vertex.incidentEdges.erase(edgeIndex);
+            }
         } else {
             kept.push_back(edge);
         }
@@ -59,17 +63,69 @@ void getKSpanning(Hypergraph& H, int k, std::vector<Hyperedge>& S) {
 
 Hypergraph contract(const Hypergraph& H, int edgeIndex) {
     const Hyperedge& e = H.edges[edgeIndex];
-    int n = (int)(H.vertices.size());
+    int n = (int) H.vertices.size();
+    int m = (int) H.edges.size();
 
     Hypergraph contractedGraph;
+    auto& contractedEdge = H.edges[edgeIndex];
 
-    for (int vertexIndex = 0; vertexIndex < H.vertices.size(); vertexIndex++) {
-        const auto vertex = &H.vertices[vertexIndex];
-
+    std::vector<int> edgeMap; //maps from old edge indices to new edge indices
+    edgeMap.reserve(m);
+    for (int i = 0; i < edgeIndex; i++) {
+        auto& originalEdge = H.edges[i];
+        contractedGraph.edges.push_back({originalEdge.weight, {}});
+        edgeMap.push_back(i);
+    }
+    edgeMap.push_back(-1);
+    for (int i = edgeIndex+1; i < m; i++) {
+        auto& originalEdge = H.edges[i];
+        contractedGraph.edges.push_back({originalEdge.weight, {}});
+        edgeMap.push_back(i-1);
     }
 
+    std::vector<int> vertexMap; //maps from new vertex indices to old vertex indices
+    vertexMap.reserve(n-1);
+    for (int vertexIndex = 0; vertexIndex < n; vertexIndex++) {
+        if (!contractedEdge.vertices.contains(vertexIndex)) {
+            //the vertex is in V' (V \ e)
+            vertexMap.push_back(vertexIndex);
+            contractedGraph.vertices.emplace_back();
+        }
+    }
 
+    std::vector<int> oldEdgeIncidenceSizes(m, -1);
 
+    for (int newVertexIndex = 0; newVertexIndex < contractedGraph.vertices.size(); newVertexIndex++) {
+        auto& newVertex = contractedGraph.vertices[newVertexIndex];
+        auto& oldVertex = H.vertices[vertexMap[newVertexIndex]];
+
+        for (auto oldEdgeIndex: oldVertex.incidentEdges) {
+            auto& oldIncidentEdge = H.edges[oldEdgeIndex];
+            oldEdgeIncidenceSizes[edgeMap[oldEdgeIndex]] = (int) oldIncidentEdge.vertices.size();
+            auto& newIncidentEdge = contractedGraph.edges[edgeMap[oldEdgeIndex]];
+            newVertex.incidentEdges.insert(edgeMap[oldEdgeIndex]);
+            newIncidentEdge.vertices.insert(newVertexIndex);
+        }
+    }
+
+    std::vector<Hyperedge> finalEdges;
+
+    Vertex contractedVertex;
+    int contractedVertexIndex = (int) contractedGraph.vertices.size();
+
+    for (int i = 0; i < contractedGraph.edges.size(); i++) {
+        auto& newEdge = contractedGraph.edges[i];
+        if (!newEdge.vertices.empty()) {
+            if (newEdge.vertices.size() < oldEdgeIncidenceSizes[i]) {
+                newEdge.vertices.insert(contractedVertexIndex);
+                contractedVertex.incidentEdges.insert(i);
+            }
+            finalEdges.push_back(std::move(newEdge));
+        }
+    }
+    contractedGraph.vertices.push_back(contractedVertex);
+    contractedGraph.edges = std::move(finalEdges);
+    return contractedGraph;
 }
 
 
@@ -116,22 +172,25 @@ std::vector<Hyperedge> BranchingContractMain(const Hypergraph& H_in, int k, uint
 
 
 int main() {
-    Hypergraph H;
-    H.vertices = {
-            {{0}},
-            {{0, 2}},
-            {{0, 1}},
-            {{1, 2}},
-            {{2}}
-    };
-    H.edges = {
-            {1.0, {0, 1, 2}},
-            {2.5, {2, 3}},
-            {0.7, {1, 3, 4}}
-    };
+//    Hypergraph H;
+//    H.vertices = {
+//            {{0}},
+//            {{0, 2}},
+//            {{0, 1}},
+//            {{1, 2}},
+//            {{2}}
+//    };
+//    H.edges = {
+//            {50, {0, 1, 2}},
+//            {3, {2, 3}},
+//            {10, {1, 3, 4}}
+//    };
 
-    int k = 2;
-    auto result = BranchingContractMain(H, k);
+    Hypergraph H("sat14_q_query_3_L150_coli.sat.cnf.dual.hgr");
+    std::cout << H.vertices.size() << std::endl;
+
+    int k = 5;
+    auto result = BranchingContractMain(H, k, 3);
 
     std::cout << "Cut edges (total weight = " << computeWeight(result) << "):\n";
     for (auto& edge : result) {

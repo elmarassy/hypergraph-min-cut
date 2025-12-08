@@ -14,7 +14,7 @@
 
 struct Hyperedge {
     int weight{};
-    std::vector<int> vertices;
+    std::unordered_set<int> vertices;
 
     std::string toString() const {
         std::ostringstream oss;
@@ -27,7 +27,7 @@ struct Hyperedge {
 };
 
 struct Vertex {
-    std::vector<int> incidentEdges;
+    std::unordered_set<int> incidentEdges;
 
     std::string toString() const {
         std::ostringstream oss;
@@ -43,7 +43,9 @@ struct Hypergraph {
     std::vector<Vertex> vertices;
     std::vector<Hyperedge> edges;
 
-    Hypergraph(const std::string& fileName) {
+    Hypergraph() = default;
+
+    explicit Hypergraph(const std::string& fileName) {
         std::ifstream fin(fileName);
 
         int numHyperedges, numVertices;
@@ -63,15 +65,15 @@ struct Hypergraph {
         for (int i = 0; i < numHyperedges; i++) {
             std::getline(fin, line);
             std::istringstream iss(line);
-            std::vector<int> edgeVertices;
+            std::unordered_set<int> edgeVertices;
 
             // Assigning the Edges in the Graph
             int vertexInd;
             while (iss >> vertexInd){
-                edgeVertices.push_back(vertexInd-1);
+                edgeVertices.insert(vertexInd-1);
 
                 // Assigning the Vertices in the Graph
-                vertices[vertexInd-1].incidentEdges.push_back(i);
+                vertices[vertexInd-1].incidentEdges.insert(i);
             }
             int randomWeight = distrib(gen);
             edges[i].weight = randomWeight;
