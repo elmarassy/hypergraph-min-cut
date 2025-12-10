@@ -53,6 +53,28 @@ void experimentTwoRandomized(){
     outputFile.close();
 }
 
+void experimentOneDeterministic(){
+    std::ofstream outputFile("outputs/exp1Deterministic.txt");
+    outputFile << "Format: n k #weight" << std::endl;
+    std::vector<int> sizes = {10, 50, 100, 500, 1000};
+    for (int size: sizes){
+        std::cout << "Running " << size << std::endl;
+        outputFile << size << " 5 ";
+        Hypergraph H = kUniformHypergraph(std::uniform_int_distribution<uint32_t>(1, 100), size, size, 5, 1);
+        auto cutWeight = deterministicMinCut(H);
+        outputFile << cutWeight << std::endl;
+    }
+    outputFile << std::endl;
+    for (int size: sizes){
+        std::cout << "Running " << size << std::endl;
+        int k = (int)size/2;
+        outputFile << size << " " << k << " ";
+        Hypergraph H = kUniformHypergraph(std::uniform_int_distribution<uint32_t>(1, 100), size, size, k, 1);
+        auto cutWeight = deterministicMinCut(H);
+        outputFile << cutWeight << std::endl;
+    }
+}
+
 void experimentTwoDeterministic(){
     std::string path_to_dir = "/Users/rushil/Documents/MIT/Fall25/6.5220/hypergraph-min-cut/circuit_hypergraphs";
     std::ofstream outputFile("outputs/exp2Deterministic.txt");
@@ -72,16 +94,31 @@ void experimentTwoDeterministic(){
 int main() {
     // Hypergraph H;
     // H.edges = {
-    //         {{0, 1, 2, 7}, 50},
-    //         {{2, 3, 7}, 3},
+    //         {{0, 1, 2, 5}, 50},
+    //         {{2, 3, 5}, 3},
     //         {{1, 3, 4, 6}, 10},
     //         {{0, 2, 4, 6}, 5},
-    //         {{3, 5, 7}, 7},
-    //         {{0, 6}, 1}
+    //         {{3, 5}, 7},
     // };
-    // H.n = 8;
+    // H.n = 7;
     // auto cutWeight = deterministicMinCut(H);
     // std::cout << cutWeight << std::endl;
 
-    experimentTwoDeterministic();
+    // Hypergraph H2;
+    // H2.edges = {
+    //         {{0, 1, 2, 5}, 50},
+    //         {{2, 3, 5}, 3},
+    //         {{1, 3, 4, 6}, 10},
+    //         {{0, 2, 4, 6}, 5},
+    //         {{3, 5}, 7},
+    // };
+    // H2.n = 7;
+
+    // auto randomCutWeight = Amplify(H2, 2, 2, 1);
+    // std::cout << randomCutWeight.cutWeight << std::endl;
+
+    // experimentTwoDeterministic();
+    // experimentTwoRandomized();
+
+    experimentOneDeterministic();
 }

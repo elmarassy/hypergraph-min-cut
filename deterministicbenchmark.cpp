@@ -37,7 +37,6 @@ uint32_t minCutPhase(Hypergraph& H){
         }
     }
 
-
     // Initialize the weights w(A) for all vertices V/{0} for A = {0}
     for (uint32_t i = 0; i < H.n; i++){
         Task t;
