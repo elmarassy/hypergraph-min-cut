@@ -31,8 +31,8 @@ struct Hypergraph {
         n = numVertices;
         std::string line;
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
+//        std::random_device rd;
+        std::mt19937 gen(0);
         std::uniform_int_distribution<> distrib(1, 100);
 
         std::getline(fin, line);

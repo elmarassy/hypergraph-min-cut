@@ -33,7 +33,7 @@ struct DSU {
 };
 
 
-double redo_probability(int n, int e_size, int k) noexcept {
+double redoProbability(int n, int e_size, int k) noexcept {
     if (k <= 1) return 0.0;
     if (e_size >= n) return 1.0;
     if (n - e_size < k - 1) return 1.0;
@@ -45,7 +45,7 @@ double redo_probability(int n, int e_size, int k) noexcept {
     return std::clamp(z, 0.0, 1.0);
 }
 
-void extract_k_spanning(Hypergraph& H, int k, std::vector<Hyperedge>& S) {
+void getKSpanning(Hypergraph& H, int k, std::vector<Hyperedge>& S) {
     const int threshold = std::max(0, (int) H.n - k + 2);
     std::vector<Hyperedge> kept;
     kept.reserve(H.edges.size());
@@ -104,7 +104,7 @@ Hypergraph contract(const Hypergraph& H, int edgeIndex) {
 }
 
 
-int select_random_edge(const Hypergraph& H, std::mt19937_64& rng) {
+int chooseRandomEdge(const Hypergraph& H, std::mt19937_64& rng) {
     if (H.edges.empty()) return -1;
 
     std::vector<double> weights;
@@ -134,7 +134,7 @@ std::vector<Hyperedge> BranchingContract(
         uint64_t& runtime,
         uint64_t cutoff
 ) {
-    extract_k_spanning(H, k, S);
+    getKSpanning(H, k, S);
     if (runtime >= cutoff) {
         throw DidNotFinish();
     }
@@ -143,10 +143,10 @@ std::vector<Hyperedge> BranchingContract(
     contractions ++;
     if (H.edges.empty()) return S;
 
-    const int edgeIndex = select_random_edge(H, rng);
+    const int edgeIndex = chooseRandomEdge(H, rng);
     const Hyperedge& chosen = H.edges[edgeIndex];
 
-    const long double z = redo_probability(H.n, (int)chosen.vertices.size(), k);
+    const long double z = redoProbability(H.n, (int)chosen.vertices.size(), k);
 
     std::uniform_real_distribution<long double> dist(0.0L, 1.0L);
     const long double r = dist(rng);

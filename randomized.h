@@ -40,20 +40,19 @@ struct DSU {
     }
 };
 
+class DidNotFinish: std::exception {};
 
-double redo_probability(int n, int e_size, int k);
 
-void extract_k_spanning(Hypergraph& H, int k, std::vector<Hyperedge>& S);
+
+double redoProbability(int n, int e_size, int k);
+
+void getKSpanning(Hypergraph& H, int k, std::vector<Hyperedge>& S);
+
+int chooseRandomEdge(const Hypergraph& H, std::mt19937_64& rng);
+
+double computeWeight(const std::vector<Hyperedge>& S);
 
 Hypergraph contract(const Hypergraph& H, int idx);
-
-
-int select_random_edge(const Hypergraph& H, std::mt19937_64& rng);
-
-double total_weight(const std::vector<Hyperedge>& S);
-
-
-class DidNotFinish: std::exception {};
 
 std::vector<Hyperedge> BranchingContract(
         Hypergraph H,
