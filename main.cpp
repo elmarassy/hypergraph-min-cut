@@ -18,21 +18,25 @@
 
 void experimentOneRandomized(){
     std::ofstream outputFile("outputs/exp1Randomized.txt");
-    outputFile << "Format: n k #contractions #weight edges-cut" << std::endl;
+    outputFile << "n m k #contractions #weight edges-cut" << std::endl;
     std::vector<int> sizes = {10, 50, 100, 500, 1000};
-    for (int size: sizes){
-        outputFile << size << " 5 ";
-        Hypergraph H = kUniformHypergraph(std::uniform_int_distribution<uint32_t>(1, 100), size, size, 5, 1);
-        auto result = Amplify(H, 2, 2, 1);
-        outputFile << result.totalContractions << " " << result.cutWeight << " " << result.numContractedEdges << std::endl;
+    for (int n: sizes){
+        for (int m: sizes){
+            outputFile << n << " " << m << " 5 ";
+            Hypergraph H = kUniformHypergraph(std::uniform_int_distribution<uint32_t>(1, 100), n, m, 5, 1);
+            auto result = Amplify(H, 2, 2, 1);
+            outputFile << result.totalContractions << " " << result.cutWeight << " " << result.numContractedEdges << std::endl;
+        }
     }
     outputFile << std::endl;
-    for (int size: sizes){
-        int k = (int)size/2;
-        outputFile << size << " " << k << " ";
-        Hypergraph H = kUniformHypergraph(std::uniform_int_distribution<uint32_t>(1, 100), size, size, k, 1);
-        auto result = Amplify(H, 2, 2, 1);
-        outputFile << result.totalContractions << " " << result.cutWeight << " " << result.numContractedEdges << std::endl;
+    for (int n: sizes){
+        for (int m: sizes){
+            int k = (int)n/2;
+            outputFile << n << " " << m << " " << k << " ";
+            Hypergraph H = kUniformHypergraph(std::uniform_int_distribution<uint32_t>(1, 100), n, m, k, 1);
+            auto result = Amplify(H, 2, 2, 1);
+            outputFile << result.totalContractions << " " << result.cutWeight << " " << result.numContractedEdges << std::endl;
+        }
     }
     outputFile.close();
 }
@@ -43,12 +47,14 @@ void experimentTwoRandomized(){
     outputFile << "file_name #contractions #weight edges-cut time" << std::endl;
     for (const auto& entry: std::filesystem::directory_iterator(path_to_dir)){
         std::string file_name = entry.path().filename();
-        // std::string file_name = "c17.mtx.hgr";
         std::string full_file_name = path_to_dir+"/"+file_name;
         outputFile << file_name << " ";
         Hypergraph H{full_file_name};
+        auto start = std::chrono::high_resolution_clock::now();
         auto result = Amplify(H, 2, 2, 1);
-        outputFile << result.totalContractions << " " << result.cutWeight << " " << result.numContractedEdges << std::endl;
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        outputFile << result.totalContractions << " " << result.cutWeight << " " << result.numContractedEdges << " " << duration.count() << std::endl;
     }
     outputFile.close();
 }
@@ -85,8 +91,11 @@ void experimentTwoDeterministic(){
         std::string full_file_name = path_to_dir+"/"+file_name;
         outputFile << file_name << " ";
         Hypergraph H{full_file_name};
+        auto start = std::chrono::high_resolution_clock::now();
         auto cutWeight = deterministicMinCut(H);
-        outputFile << cutWeight << std::endl;
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        outputFile << cutWeight << " " << duration.count() << std::endl;
     }
     outputFile.close();
 }
@@ -120,5 +129,5 @@ int main() {
     // experimentTwoDeterministic();
     // experimentTwoRandomized();
 
-    experimentOneDeterministic();
+    experimentTwoDeterministic();
 }
