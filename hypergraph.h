@@ -25,10 +25,8 @@ struct Hypergraph {
 
     explicit Hypergraph(const std::string& fileName) {
         std::ifstream fin(fileName);
-
         int numHyperedges, numVertices;
         fin >> numHyperedges >> numVertices;
-
         edges = std::vector<Hyperedge>(numHyperedges);
         n = numVertices;
         std::string line;
@@ -44,11 +42,11 @@ struct Hypergraph {
             std::istringstream iss(line);
             std::vector<uint32_t> edgeVertices;
 
-            int vertexInd;
+            uint32_t vertexInd;
             while (iss >> vertexInd){
-                edgeVertices.push_back(vertexInd-1);
+                edgeVertices.push_back(vertexInd);
             }
-            int randomWeight = distrib(gen);
+            uint32_t randomWeight = distrib(gen);
             edges[i].weight = randomWeight;
             edges[i].vertices = edgeVertices;
         }
