@@ -7,8 +7,7 @@ set(CMAKE_CXX_STANDARD 26)
 add_executable(hypergraph_min_cut
         main.cpp
         hypergraph.h
-        randomized.cpp
-        hypergraph.cpp
+        deterministic.h
         randomized.h
 )
 

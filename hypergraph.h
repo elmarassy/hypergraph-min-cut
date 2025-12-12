@@ -1,12 +1,14 @@
 //
 // Created by Mero Elmarassy on 12/7/25.
 //
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <random>
+#include <unordered_set>
 
-#include<iostream>
-#include<vector>
-#include<fstream>
-#include<sstream>
-#include<random>
 
 #ifndef HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
 #define HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
@@ -15,6 +17,8 @@
 struct Hyperedge {
     std::vector<uint32_t> vertices;
     uint32_t weight{};
+    Hyperedge() = default;
+    Hyperedge(std::vector<uint32_t> v, uint32_t w) : vertices(std::move(v)), weight(w) {}
 };
 
 struct Hypergraph {
@@ -31,7 +35,6 @@ struct Hypergraph {
         n = numVertices;
         std::string line;
 
-//        std::random_device rd;
         std::mt19937 gen(0);
         std::uniform_int_distribution<> distrib(1, 100);
 
@@ -53,6 +56,40 @@ struct Hypergraph {
     };
 };
 
-Hypergraph kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dist, int n, int m, int k, int seed);
+Hypergraph kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dist, int n, int m, int k, int seed) {
+    Hypergraph hypergraph;
+    hypergraph.n = n;
+    std::mt19937 rng(seed);
+    std::vector<uint32_t> vertices(n);
+    for (uint32_t i = 0; i < n; ++i) vertices[i] = i;
+
+    auto generate_k_subset = [&](std::mt19937 &rng) {
+        std::vector<uint32_t> subset(vertices.begin(), vertices.end());
+        std::shuffle(subset.begin(), subset.end(), rng);
+        subset.resize(k);
+        std::sort(subset.begin(), subset.end());
+        return subset;
+    };
+
+    std::unordered_set<std::string> edgeSet;
+    int generated = 0;
+
+    while (generated < m) {
+        auto edgeVertices = generate_k_subset(rng);
+
+        std::string key;
+        for (auto v : edgeVertices) key += std::to_string(v) + ",";
+
+        if (edgeSet.insert(key).second) {
+            Hyperedge edge;
+            edge.vertices = edgeVertices;
+            edge.weight = weight_dist(rng);
+            hypergraph.edges.push_back(edge);
+            generated ++;
+        }
+    }
+
+    return hypergraph;
+}
 
 #endif //HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
