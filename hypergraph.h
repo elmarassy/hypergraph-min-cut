@@ -1,33 +1,30 @@
-//
-// Created by Mero Elmarassy on 12/7/25.
-//
+
 #include <algorithm>
-#include <iostream>
-#include <vector>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 #include <random>
+#include <sstream>
 #include <unordered_set>
+#include <vector>
 
-
-#ifndef HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
-#define HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
-
+#ifndef HYPERGRAPH
+#define HYPERGRAPH
 
 struct Hyperedge {
     std::vector<uint32_t> vertices;
     uint32_t weight{};
     Hyperedge() = default;
-    Hyperedge(std::vector<uint32_t> v, uint32_t w) : vertices(std::move(v)), weight(w) {}
+    Hyperedge(std::vector<uint32_t> v, uint32_t w)
+        : vertices(std::move(v)), weight(w) {}
 };
 
 struct Hypergraph {
-    uint32_t n {};
+    uint32_t n{};
     std::vector<Hyperedge> edges;
 
     explicit Hypergraph() = default;
 
-    explicit Hypergraph(const std::string& fileName) {
+    explicit Hypergraph(const std::string &fileName) {
         std::ifstream fin(fileName);
         int numHyperedges, numVertices;
         fin >> numHyperedges >> numVertices;
@@ -46,7 +43,7 @@ struct Hypergraph {
             std::vector<uint32_t> edgeVertices;
 
             uint32_t vertexInd;
-            while (iss >> vertexInd){
+            while (iss >> vertexInd) {
                 edgeVertices.push_back(vertexInd);
             }
             uint32_t randomWeight = distrib(gen);
@@ -56,12 +53,15 @@ struct Hypergraph {
     };
 };
 
-Hypergraph kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dist, int n, int m, int k, int seed) {
+Hypergraph
+kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dist, int n,
+                   int m, int k, int seed) {
     Hypergraph hypergraph;
     hypergraph.n = n;
     std::mt19937 rng(seed);
     std::vector<uint32_t> vertices(n);
-    for (uint32_t i = 0; i < n; ++i) vertices[i] = i;
+    for (uint32_t i = 0; i < n; ++i)
+        vertices[i] = i;
 
     auto generate_k_subset = [&](std::mt19937 &rng) {
         std::vector<uint32_t> subset(vertices.begin(), vertices.end());
@@ -78,18 +78,19 @@ Hypergraph kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dis
         auto edgeVertices = generate_k_subset(rng);
 
         std::string key;
-        for (auto v : edgeVertices) key += std::to_string(v) + ",";
+        for (auto v : edgeVertices)
+            key += std::to_string(v) + ",";
 
         if (edgeSet.insert(key).second) {
             Hyperedge edge;
             edge.vertices = edgeVertices;
             edge.weight = weight_dist(rng);
             hypergraph.edges.push_back(edge);
-            generated ++;
+            generated++;
         }
     }
 
     return hypergraph;
 }
 
-#endif //HYPERGRAPH_MIN_CUT_HYPERGRAPH_H
+#endif // HYPERGRAPH_MIN_CUT_HYPERGRAPH_H

@@ -1,6 +1,3 @@
-#ifndef DETERMINISTIC_H
-#define DETERMINISTIC_H
-
 #include "hypergraph.h"
 #include <chrono>
 #include <iostream>
@@ -22,8 +19,9 @@ struct DeterministicHypergraph {
     std::vector<uint32_t> rank_;
     uint32_t activeVertices;
 
-    explicit DeterministicHypergraph(const Hypergraph& H)
-            : n(H.n), edges(H.edges), incident(H.n), parent(H.n), rank_(H.n, 0), activeVertices(H.n) {
+    explicit DeterministicHypergraph(const Hypergraph &H)
+        : n(H.n), edges(H.edges), incident(H.n), parent(H.n), rank_(H.n, 0),
+          activeVertices(H.n) {
 
         std::iota(parent.begin(), parent.end(), 0u);
 
@@ -36,7 +34,8 @@ struct DeterministicHypergraph {
 
     uint32_t find(uint32_t x) {
         uint32_t root = x;
-        while (parent[root] != root) root = parent[root];
+        while (parent[root] != root)
+            root = parent[root];
         while (parent[x] != root) {
             uint32_t next = parent[x];
             parent[x] = root;
@@ -48,10 +47,13 @@ struct DeterministicHypergraph {
     void unite(uint32_t a, uint32_t b) {
         a = find(a);
         b = find(b);
-        if (a == b) return;
-        if (rank_[a] < rank_[b]) std::swap(a, b);
+        if (a == b)
+            return;
+        if (rank_[a] < rank_[b])
+            std::swap(a, b);
         parent[b] = a;
-        if (rank_[a] == rank_[b]) ++rank_[a];
+        if (rank_[a] == rank_[b])
+            ++rank_[a];
         --activeVertices;
 
         for (uint32_t ei : incident[b]) {
@@ -61,23 +63,22 @@ struct DeterministicHypergraph {
     }
 
     bool isNonTrivial(uint32_t ei) {
-        const auto& e = edges[ei];
-        if (e.vertices.empty()) return false;
+        const auto &e = edges[ei];
+        if (e.vertices.empty())
+            return false;
         uint32_t firstRoot = find(e.vertices[0]);
         for (size_t i = 1; i < e.vertices.size(); ++i) {
-            if (find(e.vertices[i]) != firstRoot) return true;
+            if (find(e.vertices[i]) != firstRoot)
+                return true;
         }
         return false;
     }
 };
 
-inline std::pair<uint64_t, std::pair<uint32_t, uint32_t>> minCutPhase(
-        DeterministicHypergraph& H,
-        std::vector<uint64_t>& connectivity,
-        std::vector<bool>& inA,
-        std::vector<bool>& edgeUsed,
-        uint64_t& edgeUpdates
-) {
+inline std::pair<uint64_t, std::pair<uint32_t, uint32_t>>
+minCutPhase(DeterministicHypergraph &H, std::vector<uint64_t> &connectivity,
+            std::vector<bool> &inA, std::vector<bool> &edgeUsed,
+            uint64_t &edgeUpdates) {
     if (H.activeVertices < 2) {
         return {std::numeric_limits<uint64_t>::max(), {0, 0}};
     }
@@ -85,7 +86,8 @@ inline std::pair<uint64_t, std::pair<uint32_t, uint32_t>> minCutPhase(
     std::vector<uint32_t> activeReps;
     activeReps.reserve(H.activeVertices);
     for (uint32_t v = 0; v < H.n; ++v) {
-        if (H.find(v) == v) activeReps.push_back(v);
+        if (H.find(v) == v)
+            activeReps.push_back(v);
     }
 
     if (activeReps.size() < 2) {
@@ -103,7 +105,8 @@ inline std::pair<uint64_t, std::pair<uint32_t, uint32_t>> minCutPhase(
     uint32_t lastV = current, secondLastV = current;
 
     for (uint32_t ei : H.incident[current]) {
-        if (edgeUsed[ei] || !H.isNonTrivial(ei)) continue;
+        if (edgeUsed[ei] || !H.isNonTrivial(ei))
+            continue;
         edgeUsed[ei] = true;
 
         uint64_t w = H.edges[ei].weight;
@@ -129,14 +132,16 @@ inline std::pair<uint64_t, std::pair<uint32_t, uint32_t>> minCutPhase(
             }
         }
 
-        if (!foundFirst) break;
+        if (!foundFirst)
+            break;
 
         secondLastV = lastV;
         lastV = best;
         inA[best] = true;
 
         for (uint32_t ei : H.incident[best]) {
-            if (edgeUsed[ei] || !H.isNonTrivial(ei)) continue;
+            if (edgeUsed[ei] || !H.isNonTrivial(ei))
+                continue;
             edgeUsed[ei] = true;
 
             uint64_t w = H.edges[ei].weight;
@@ -160,7 +165,8 @@ inline std::pair<uint64_t, std::pair<uint32_t, uint32_t>> minCutPhase(
     return {cutWeight, {secondLastV, lastV}};
 }
 
-inline DeterministicResult deterministicMinCut(const Hypergraph& H, bool verbose = false) {
+inline DeterministicResult deterministicMinCut(const Hypergraph &H,
+                                               bool verbose = false) {
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -178,7 +184,8 @@ inline DeterministicResult deterministicMinCut(const Hypergraph& H, bool verbose
     std::vector<bool> edgeUsed(H.edges.size(), false);
 
     while (FH.activeVertices > 1) {
-        auto [phaseCut, verticesToMerge] = minCutPhase(FH, connectivity, inA, edgeUsed, result.numEdgeUpdates);
+        auto [phaseCut, verticesToMerge] =
+            minCutPhase(FH, connectivity, inA, edgeUsed, result.numEdgeUpdates);
 
         if (phaseCut < result.cutWeight) {
             result.cutWeight = phaseCut;
@@ -196,13 +203,16 @@ inline DeterministicResult deterministicMinCut(const Hypergraph& H, bool verbose
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
-    result.timeSeconds = std::chrono::duration<double>(endTime - startTime).count();
+    result.timeSeconds =
+        std::chrono::duration<double>(endTime - startTime).count();
 
     return result;
 }
 
-inline DeterministicResult deterministicMinKCut(const Hypergraph& H, uint32_t k, bool verbose = false) {
-    if (k == 2) return deterministicMinCut(H, verbose);
+inline DeterministicResult deterministicMinKCut(const Hypergraph &H, uint32_t k,
+                                                bool verbose = false) {
+    if (k == 2)
+        return deterministicMinCut(H, verbose);
 
     auto startTime = std::chrono::high_resolution_clock::now();
     DeterministicResult result;
@@ -216,20 +226,24 @@ inline DeterministicResult deterministicMinKCut(const Hypergraph& H, uint32_t k,
         result.numVertexMerges += cutResult.numVertexMerges;
         result.numEdgeUpdates += cutResult.numEdgeUpdates;
 
-        if (verbose) std::cout << "  Cut " << (i+1) << ": " << cutResult.cutWeight << "\n";
+        if (verbose)
+            std::cout << "  Cut " << (i + 1) << ": " << cutResult.cutWeight
+                      << "\n";
 
         uint64_t removed = 0;
         std::vector<Hyperedge> remaining;
-        for (auto& e : current.edges) {
-            if (removed < cutResult.cutWeight) removed += e.weight;
-            else remaining.push_back(std::move(e));
+        for (auto &e : current.edges) {
+            if (removed < cutResult.cutWeight)
+                removed += e.weight;
+            else
+                remaining.push_back(std::move(e));
         }
         current.edges = std::move(remaining);
     }
 
-    result.timeSeconds = std::chrono::duration<double>(
-            std::chrono::high_resolution_clock::now() - startTime).count();
+    result.timeSeconds =
+        std::chrono::duration<double>(
+            std::chrono::high_resolution_clock::now() - startTime)
+            .count();
     return result;
 }
-
-#endif
