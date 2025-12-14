@@ -1,6 +1,10 @@
 #include "hypergraph.h"
 #include <algorithm>
 
+#ifndef RANDOMIZED
+#define RANDOMIZED
+
+
 class BatchTimeout : std::exception {};
 
 struct ContractionResult {
@@ -215,6 +219,9 @@ ContractionResult randomizedMinKCut(const Hypergraph &H, uint32_t k, uint64_t ba
     uint64_t numBatches = numBatchesFactor * logN;
     uint64_t iterationsPerBatch = batchScale * logN;
 
+    std::cout << "batches: " << numBatches << std::endl;
+    std::cout << "iterations: " << iterationsPerBatch << std::endl;
+
     if (verbose)
         std::cout << "Expected runtime: " << T << "\n"
                   << "Batch cutoff: " << cutoff << "\n"
@@ -274,3 +281,5 @@ ContractionResult randomizedMinKCut(const Hypergraph &H, uint32_t k, uint64_t ba
     result.totalRuntime = totalRuntime;
     return result;
 }
+
+#endif

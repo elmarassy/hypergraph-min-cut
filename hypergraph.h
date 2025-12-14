@@ -56,6 +56,7 @@ struct Hypergraph {
 Hypergraph
 kUniformHypergraph(std::uniform_int_distribution<uint32_t> weight_dist, int n,
                    int m, int k, int seed) {
+    std::cout << "generated with seed " << seed << std::endl;
     Hypergraph hypergraph;
     hypergraph.n = n;
     std::mt19937 rng(seed);
